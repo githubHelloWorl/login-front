@@ -87,6 +87,7 @@
 <script>
 import axios from "axios";
 import { ElMessage } from "element-plus";
+import StorageUtils from "@/utils/StoreUtils";
 
 export default {
   data() {
@@ -130,6 +131,10 @@ export default {
                 message: "登陆成功",
                 type: "success",
               });
+
+              StorageUtils.saveLocalData("LoginSuccess", resp.data.data);
+
+              that.$router.replace(that.ruleForm.type);
             });
           } else if (that.ruleForm.type === "student") {
             // 验证学生
@@ -137,11 +142,21 @@ export default {
               sid: that.ruleForm.id,
               password: that.ruleForm.password,
             };
-            axios
-              .post("http://localhost:8088/api/login2", form)
-              .then(function (resp) {
-                console.log("学生登陆验证信息：" + resp.data);
-              });
+            axios.post("/api/login1", form).then(function (resp) {
+              console.log("学生登陆验证信息：");
+              console.log(resp.data);
+
+              if (resp.data.code === 1) {
+                ElMessage.success({
+                  message: "登录成功",
+                  type: "success",
+                });
+              }
+
+              StorageUtils.saveLocalData("LoginSuccess", resp.data.data);
+
+              that.$router.replace(that.ruleForm.type);
+            });
           } else {
             console.log("! error type");
           }
@@ -181,5 +196,6 @@ export default {
   line-height: 60px;
   margin: 50px auto auto 10%;
   width: 80%;
+  border-radius: 5px;
 }
 </style>
