@@ -64,6 +64,12 @@
               autocomplete="off"
             ></el-input>
           </el-form-item>
+          <el-form-item label="用户类型" prop="type">
+            <el-radio-group v-model="ruleForm.type">
+              <el-radio label="student" value="student">学生</el-radio>
+              <el-radio label="teacher" value="teacher">老师</el-radio>
+            </el-radio-group>
+          </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="submitForm('ruleForm')"
               >提交
@@ -103,6 +109,7 @@ export default {
     };
     return {
       ruleForm: {
+        type: "",
         pass: "",
         checkPass: "",
         name: sessionStorage.getItem("name"),
@@ -111,48 +118,43 @@ export default {
         pass: [{ validator: validatePass, trigger: "blur" }],
         checkPass: [{ validator: validatePass2, trigger: "blur" }],
         name: [{ require: true, message: "名字不能为空", trigger: "blur" }],
+        type: [{ require: true, message: "身份必须选择", trigger: "blur" }],
       },
     };
   },
   methods: {
+    // 注册
     submitForm(formName) {
+      const that = this;
       this.$refs[formName].validate((valid) => {
         if (valid) {
           const that = this;
-          sessionStorage.setItem("name", that.ruleForm.name);
-          const type = sessionStorage.getItem("type");
-          let form = null;
-          let ss = null;
-          if (type === "student") {
-            ss = "Student";
+          let a = "1";
+
+          let form = new Object();
+          if (that.ruleForm.type === "student") {
+            a = "1";
             form = {
-              sid: sessionStorage.getItem("sid"),
               sname: that.ruleForm.name,
               password: that.ruleForm.pass,
             };
           } else {
-            ss = "Teacher";
+            a = "2";
             form = {
-              tid: sessionStorage.getItem("tid"),
               tname: that.ruleForm.name,
               password: that.ruleForm.pass,
             };
           }
 
-          axios
-            .post("http://localhost:10086/" + type + "/update" + ss, form)
-            .then(function (resp) {
-              if (resp.data === true) {
-                that.$message({
-                  showClose: true,
-                  message: "编辑成功",
-                  type: "success",
-                });
-              } else {
-                that.$message.error("编辑失败，联系管理员");
-              }
-              that.$router.push("/" + type + "Home");
-            });
+          axios.post("/api/register" + a, form).then(function (resp) {
+            if (resp.data.code === 1) {
+              that.$alert(resp.data.data, "请记住您的账号", {
+                confirmButtonText: "确定",
+              });
+            } else {
+              that.$message.error("编辑失败，联系管理员");
+            }
+          });
         } else {
           console.log("error submit!!");
           return false;
